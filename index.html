@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AIシェフのリモコン</title>
+    <style>
+        /* --- 食欲が湧く温かいカラーパレット --- */
+        :root {
+            --bg-color: #FFFDF9; /* ご飯やパンのような温かい白 */
+            --text-color: #4A3B32; /* 焦げ茶色（文字が読みやすい） */
+            --primary: #FF5E3A; /* トマトレッド（メインアクション） */
+            --accent: #F4A261; /* 焼き色のオレンジ（気分） */
+            --green: #81B214; /* 新鮮なグリーン（体力） */
+            --gray-bg: #F5F0EA; /* 落ち着いたグレーベージュ */
+        }
+
+        /* --- 基本設定 --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px 20px 120px; /* 下部の固定ボタン用に余白を確保 */
+        }
+
+        h1 {
+            font-size: 1.4rem;
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 25px;
+        }
+
+        /* --- セクションのデザイン --- */
+        .section {
+            background: #fff;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            border: 1px solid #F0EBE1;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--gray-bg);
+            padding-bottom: 8px;
+        }
+
+        /* --- タグ（直感的に押せるボタン） --- */
+        .tag-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tag-label input {
+            display: none; /* デフォルトのチェックボックスを隠す */
+        }
+
+        .tag-text {
+            display: inline-block;
+            padding: 10px 18px;
+            background-color: var(--gray-bg);
+            border-radius: 24px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        /* 食材の選択時（赤） */
+        .ing-group input:checked + .tag-text {
+            background-color: var(--primary);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(255, 94, 58, 0.3);
+        }
+
+        /* 気分の選択時（オレンジ） */
+        .mood-group input:checked + .tag-text {
+            background-color: var(--accent);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(244, 162, 97, 0.3);
+        }
+
+        /* 体力の選択時（緑） */
+        .hp-group input:checked + .tag-text {
+            background-color: var(--green);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(129, 178, 20, 0.3);
+        }
+
+        /* 自由入力欄 */
+        .custom-input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: 1px solid #DCD7D1;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            background-color: #FAFAF8;
+        }
+
+        /* --- 画面下部の固定アクションバー --- */
+        .action-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 253, 249, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px 25px; /* iPhoneのホームバー考慮 */
+            box-sizing: border-box;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 100;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 14px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+            transition: transform 0.1s;
+        }
+
+        .btn:active {
+            transform: scale(0.97); /* 押した時の凹み感 */
+        }
+
+        .btn-main {
+            background-color: var(--primary);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(255, 94, 58, 0.4);
+        }
+
+        .btn-sub {
+            background-color: #fff;
+            color: var(--text-color);
+            border: 2px solid #E8E2D9;
+        }
+
+        /* --- コピー完了の通知ポップアップ --- */
+        #toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(74, 59, 50, 0.9);
+            color: #fff;
+            padding: 14px 24px;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🍳 AIシェフのリモコン</h1>
+
+    <div class="section">
+        <div class="section-title">🥩 今ある食材（複数OK）</div>
+        <div class="tag-group ing-group">
+            <label class="tag-label"><input type="checkbox" name="ingredient" value="豚肉"><span class="tag-text">豚肉</span></label>
+            <label class="tag-label"><input type="checkbox" name="ingredient" value="鶏肉"><span class="tag-text">鶏肉</span></label>
+            <label class="tag-label"><input type="checkbox" name="ingredient" value="ひき肉"><span class="tag-text">ひき肉</span></label>
+            <label class="tag-label"><input type="checkbox" name="ingredient" value="卵"><span class="tag-text">卵</span></label>
+            <label class="tag-label"><input type="checkbox" name="ingredient" value="キャベツ"><span class="tag-text">キャベツ</span></label>
+            <label class="tag-label"><input type="checkbox" name="ingredient" value="玉ねぎ"><span class="tag-text">玉ねぎ</span></label>
+            <label class="tag-label"><input type="checkbox" name="ingredient" value="トマト"><span class="tag-text">トマト</span></label>
+        </div>
+        <input type="text" id="custom-ingredient" class="custom-input" placeholder="その他の食材があれば入力...">
+    </div>
+
+    <div class="section">
+        <div class="section-title">🌶️ 今の気分（1つ）</div>
+        <div class="tag-group mood-group">
+            <label class="tag-label"><input type="radio" name="mood" value="ガッツリ・濃い味" checked><span class="tag-text">ガッツリ</span></label>
+            <label class="tag-label"><input type="radio" name="mood" value="さっぱり・ヘルシー"><span class="tag-text">さっぱり</span></label>
+            <label class="tag-label"><input type="radio" name="mood" value="とにかく温まりたい"><span class="tag-text">温まりたい</span></label>
+            <label class="tag-label"><input type="radio" name="mood" value="お酒のおつまみ"><span class="tag-text">おつまみ</span></label>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">🔋 今の体力・HP（1つ）</div>
+        <div class="tag-group hp-group">
+            <label class="tag-label"><input type="radio" name="hp" value="余裕あり（少し手間をかけてもOK）" checked><span class="tag-text">余裕あり</span></label>
+            <label class="tag-label"><input type="radio" name="hp" value="普通（サクッと作りたい）"><span class="tag-text">普通</span></label>
+            <label class="tag-label"><input type="radio" name="hp" value="限界（火も包丁も極力使わず10分以内）"><span class="tag-text">限界（10分以内）</span></label>
+        </div>
+    </div>
+
+    <div id="toast">注文書をコピーしました！厨房へ移動します...</div>
+
+    <div class="action-bar">
+        <button class="btn btn-main" onclick="generatePrompt(false)">注文書をコピーして厨房へ 🚀</button>
+        <button class="btn btn-sub" onclick="generatePrompt(true)">思考停止（完全おまかせ） 🎲</button>
+    </div>
+
+    <script>
+        function generatePrompt(isRandom) {
+            let promptText = "";
+
+            if (isRandom) {
+                // 完全おまかせモードのプロンプト
+                promptText = "今日は何も考えたくありません。今の冷蔵庫の在庫は無視して構いません。ソースのレシピ帳の中から、私が絶対に満足する鉄板メニューをランダムで1つ強制的に決定して提案してください。手順とおよその時間も教えてください。";
+            } else {
+                // 通常の条件生成モードのプロンプト
+                
+                // 1. 食材の取得
+                const checkedIngredients = Array.from(document.querySelectorAll('input[name="ingredient"]:checked')).map(cb => cb.value);
+                const customIng = document.getElementById('custom-ingredient').value.trim();
+                if (customIng) checkedIngredients.push(customIng);
+                
+                const ingredientsText = checkedIngredients.length > 0 ? `『${checkedIngredients.join('』、『')}』` : "家にある適当なもの";
+
+                // 2. 気分の取得
+                const mood = document.querySelector('input[name="mood"]:checked').value;
+
+                // 3. HPの取得
+                const hp = document.querySelector('input[name="hp"]:checked').value;
+
+                // プロンプトの組み立て
+                promptText = `私は今、HPが【${hp}】です。ソースのレシピ帳にある私の好みの傾向をベースにして、今家にある食材 ${ingredientsText} を使った【${mood}】気分の派生レシピを1つだけ提案してください。手順とおよその時間も教えてください。`;
+            }
+
+            // クリップボードにコピー
+            navigator.clipboard.writeText(promptText).then(() => {
+                showToast();
+                // 1.5秒後にNotebookLMを開く（Safariの別タブ）
+                setTimeout(() => {
+                    window.open('https://notebooklm.google.com/', '_blank');
+                }, 1500);
+            }).catch(err => {
+                alert("コピーに失敗しました。ブラウザの設定を確認してください。");
+            });
+        }
+
+        // トースト通知を表示する関数
+        function showToast() {
+            const toast = document.getElementById("toast");
+            toast.style.opacity = "1";
+            setTimeout(() => {
+                toast.style.opacity = "0";
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
