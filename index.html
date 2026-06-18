@@ -182,6 +182,7 @@
             <label class="tag-label"><input type="checkbox" name="ingredient" value="卵"><span class="tag-text">卵</span></label>
             <label class="tag-label"><input type="checkbox" name="ingredient" value="キャベツ"><span class="tag-text">キャベツ</span></label>
             <label class="tag-label"><input type="checkbox" name="ingredient" value="玉ねぎ"><span class="tag-text">玉ねぎ</span></label>
+            <label class="tag-label"><input type="checkbox" name="ingredient" value="にんじん"><span class="tag-text">にんじん</span></label>
             <label class="tag-label"><input type="checkbox" name="ingredient" value="トマト"><span class="tag-text">トマト</span></label>
         </div>
         <input type="text" id="custom-ingredient" class="custom-input" placeholder="その他の食材があれば入力...">
@@ -192,8 +193,7 @@
         <div class="tag-group mood-group">
             <label class="tag-label"><input type="radio" name="mood" value="ガッツリ・濃い味" checked><span class="tag-text">ガッツリ</span></label>
             <label class="tag-label"><input type="radio" name="mood" value="さっぱり・ヘルシー"><span class="tag-text">さっぱり</span></label>
-            <label class="tag-label"><input type="radio" name="mood" value="とにかく温まりたい"><span class="tag-text">温まりたい</span></label>
-            <label class="tag-label"><input type="radio" name="mood" value="お酒のおつまみ"><span class="tag-text">おつまみ</span></label>
+            <label class="tag-label"><input type="radio" name="mood" value="副菜"><span class="tag-text">副菜</span></label>
         </div>
     </div>
 
@@ -202,7 +202,7 @@
         <div class="tag-group hp-group">
             <label class="tag-label"><input type="radio" name="hp" value="余裕あり（少し手間をかけてもOK）" checked><span class="tag-text">余裕あり</span></label>
             <label class="tag-label"><input type="radio" name="hp" value="普通（サクッと作りたい）"><span class="tag-text">普通</span></label>
-            <label class="tag-label"><input type="radio" name="hp" value="限界（火も包丁も極力使わず10分以内）"><span class="tag-text">限界（10分以内）</span></label>
+            <label class="tag-label"><input type="radio" name="hp" value="スピード（10分以内）"><span class="tag-text">スピード（10分）</span></label>
         </div>
     </div>
 
@@ -219,7 +219,7 @@
 
             if (isRandom) {
                 // 完全おまかせモードのプロンプト
-                promptText = "今日は何も考えたくありません。今の冷蔵庫の在庫は無視して構いません。ソースのレシピ帳の中から、私が絶対に満足する鉄板メニューをランダムで1つ強制的に決定して提案してください。手順とおよその時間も教えてください。";
+                promptText = "今日は何も考えたくありません。今の冷蔵庫の在庫は無視して構いません。ソースのレシピ帳の中から、私が絶対に満足する鉄板メニューをランダムで1つ強制的に決定して提案してください。手順とおよ短時間も教えてください。";
             } else {
                 // 通常の条件生成モードのプロンプト
                 
